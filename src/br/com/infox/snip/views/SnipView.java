@@ -5,6 +5,7 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -46,6 +47,10 @@ public class SnipView extends ViewPart {
 	private DrillDownAdapter drillDownAdapter;
 	private Action doubleClickAction;
 	private Action refreshAction;
+	private Action addAction;
+	private Action editAction;
+	private Action removeSnippetAction;
+	private Action removeFolderAction;
 
 	/**
 	 * The constructor.
@@ -73,6 +78,10 @@ public class SnipView extends ViewPart {
 	private void contributeToActionBars() {
 		IActionBars bars = getViewSite().getActionBars();
 		bars.getToolBarManager().add(refreshAction);
+		bars.getToolBarManager().add(addAction);
+		bars.getToolBarManager().add(editAction);
+		bars.getToolBarManager().add(removeSnippetAction);
+		bars.getToolBarManager().add(removeFolderAction);
 	}
 
 	private void hookContextMenu() {
@@ -98,10 +107,7 @@ public class SnipView extends ViewPart {
 	private void makeActions() {
 		doubleClickAction = new Action() {
 			public void run() {
-				ISelection selection = viewer.getSelection();
-				Object obj = ((IStructuredSelection) selection).getFirstElement();
-				SnippetDialog dialog = new SnippetDialog(getViewSite().getShell(),
-						((SnippetTreeObject) obj).getSnippet());
+				SnippetDialog dialog = new SnippetDialog(getViewSite().getShell(), getSelected().getSnippet());
 				dialog.open();
 			}
 		};
@@ -113,10 +119,58 @@ public class SnipView extends ViewPart {
 				viewer.refresh();
 			}
 		};
-		
-		refreshAction.setText("Refresh");
-		refreshAction.setToolTipText("Refresh");
+		refreshAction.setText("Atualizar");
+		refreshAction.setToolTipText("Atualizar");
 		refreshAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_REDO));
+		
+		addAction = new Action() {
+			@Override
+			public void run() {
+			}
+		};
+		addAction.setText("Adicionar");
+		addAction.setToolTipText("Adicionar snippet");
+		addAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJ_ADD));
+		
+		editAction = new Action() {
+			@Override
+			public void run() {
+				SnippetTreeObject o = getSelected();
+				if (o != null) {
+					MessageDialog.openError(getViewSite().getShell(), "Erro", "Operação ainda não implementada");
+				}
+			}
+		};
+		editAction.setText("Editar");
+		editAction.setToolTipText("Editar snippet");
+		editAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT));
+		
+		removeFolderAction = new Action() {
+			@Override
+			public void run() {
+				SnippetTreeObject o = getSelected();
+				if (o != null) {
+					MessageDialog.openError(getViewSite().getShell(), "Erro", "Operação ainda não implementada");
+				}
+			}
+		};
+		removeFolderAction.setText("Remover pasta");
+		removeFolderAction.setToolTipText("Remover pasta");
+		removeFolderAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ELCL_REMOVEALL));
+		
+		removeSnippetAction = new Action() {
+			@Override
+			public void run() {
+				SnippetTreeObject o = getSelected();
+				if (o != null) {
+					MessageDialog.openError(getViewSite().getShell(), "Erro", "Operação ainda não implementada");
+				}
+			}
+		};
+		removeSnippetAction.setText("Remover snippet");
+		removeSnippetAction.setToolTipText("Remover snippet");
+		removeSnippetAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_DELETE));
+		
 	}
 
 	private void hookDoubleClickAction() {
@@ -132,5 +186,10 @@ public class SnipView extends ViewPart {
 	 */
 	public void setFocus() {
 		viewer.getControl().setFocus();
+	}
+	
+	private SnippetTreeObject getSelected() {
+		ISelection selection = viewer.getSelection();
+		return (SnippetTreeObject) ((IStructuredSelection) selection).getFirstElement();
 	}
 }
