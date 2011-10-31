@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Infox"
+            id="br.com.infox.snip">
+      </category>
+      <view
+            name="Snip View"
+            icon="icons/sample.gif"
+            category="br.com.infox.snip"
+            class="br.com.infox.snip.views.SnipView"
+            id="br.com.infox.snip.views.SnipView">
+      </view>
+   </extension>
+
+</plugin>

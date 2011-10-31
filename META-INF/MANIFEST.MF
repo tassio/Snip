@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Snip
+Bundle-SymbolicName: br.com.infox.snip; singleton:=true
+Bundle-Version: 1.0.0
+Bundle-Activator: br.com.infox.snip.Activator
+Bundle-Vendor: Infox
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.eclipse.jdt.ui;bundle-version="3.5.2"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: lib/sqlitejdbc-v056.jar,
+ .
