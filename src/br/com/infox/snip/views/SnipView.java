@@ -6,20 +6,29 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.DrillDownAdapter;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.ITextEditor;
+
+import br.com.infox.snip.models.Snippet;
 
 /**
  * This sample class demonstrates how to plug-in a new workbench view. The view
@@ -107,8 +116,29 @@ public class SnipView extends ViewPart {
 	private void makeActions() {
 		doubleClickAction = new Action() {
 			public void run() {
-				SnippetDialog dialog = new SnippetDialog(getViewSite().getShell(), getSelected().getSnippet());
-				dialog.open();
+				IEditorPart editorPart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+				if (!(editorPart instanceof ITextEditor)) {
+					return;
+				}
+				ITextEditor editor = (ITextEditor) editorPart;
+				ISelectionProvider selectionProvider = editor.getSelectionProvider();
+				ISelection selection = selectionProvider.getSelection();
+				if (!(selection instanceof ITextSelection)) {
+					return;
+				}
+				
+				ITextSelection textSelection = (ITextSelection) selection;
+				int offset = textSelection.getOffset();
+				IDocumentProvider provider = editor.getDocumentProvider();
+				IDocument doc = provider.getDocument(editor.getEditorInput());
+				
+				Snippet snippet = getSelected().getSnippet();
+				try {
+					doc.replace(offset, 0, snippet.getSnippet());
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+				}
+				
 			}
 		};
 		
@@ -137,7 +167,8 @@ public class SnipView extends ViewPart {
 			public void run() {
 				SnippetTreeObject o = getSelected();
 				if (o != null) {
-					MessageDialog.openError(getViewSite().getShell(), "Erro", "Operação ainda não implementada");
+					SnippetDialog dialog = new SnippetDialog(getViewSite().getShell(), o.getSnippet());
+					dialog.open();
 				}
 			}
 		};
