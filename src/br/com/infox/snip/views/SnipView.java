@@ -1,5 +1,7 @@
 package br.com.infox.snip.views;
 
+import java.sql.SQLException;
+
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -28,6 +30,9 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+import br.com.infox.snip.dao.CategoryDao;
+import br.com.infox.snip.dao.SnippetDao;
+import br.com.infox.snip.models.Category;
 import br.com.infox.snip.models.Snippet;
 
 /**
@@ -56,10 +61,10 @@ public class SnipView extends ViewPart {
 	private DrillDownAdapter drillDownAdapter;
 	private Action doubleClickAction;
 	private Action refreshAction;
-	private Action addAction;
+	private Action addSnippetAction;
+	private Action addCategoryAction;
 	private Action editAction;
-	private Action removeSnippetAction;
-	private Action removeFolderAction;
+	private Action removeAction;
 
 	/**
 	 * The constructor.
@@ -87,10 +92,9 @@ public class SnipView extends ViewPart {
 	private void contributeToActionBars() {
 		IActionBars bars = getViewSite().getActionBars();
 		bars.getToolBarManager().add(refreshAction);
-		bars.getToolBarManager().add(addAction);
+		bars.getToolBarManager().add(addSnippetAction);
 		bars.getToolBarManager().add(editAction);
-		bars.getToolBarManager().add(removeSnippetAction);
-		bars.getToolBarManager().add(removeFolderAction);
+		bars.getToolBarManager().add(removeAction);
 	}
 
 	private void hookContextMenu() {
@@ -107,6 +111,7 @@ public class SnipView extends ViewPart {
 	}
 
 	private void fillContextMenu(IMenuManager manager) {
+		manager.add(addCategoryAction);
 		manager.add(new Separator());
 		drillDownAdapter.addNavigationActions(manager);
 		// Other plug-ins can contribute there actions here
@@ -114,6 +119,122 @@ public class SnipView extends ViewPart {
 	}
 
 	private void makeActions() {
+		makeDoubleClickAction();
+		
+		makeRefreshAction();
+		
+		makeAddSnippetAction();
+		
+		makeAddCategoryAction();
+		
+		makeEditAction();
+		
+		makeRemoveAction();
+		
+	}
+
+	private void makeRemoveAction() {
+		removeAction = new Action() {
+			@Override
+			public void run() {
+				SnippetTreeObject snippetTreeObject = getSelectedSnippet();
+				if (snippetTreeObject != null) {
+					SnippetDao dao = new SnippetDao();
+					try {
+						if (MessageDialog.openConfirm(getViewSite().getShell(), "", "Deseja remover o snippet ?")) {
+							dao.remove(snippetTreeObject.getSnippet());
+							MessageDialog.openInformation(getViewSite().getShell(), "", "Snippet removido com sucesso!");	
+						}
+					} catch (SQLException e) {
+						MessageDialog.openError(getViewSite().getShell(), "Erro ao remover", e.getMessage());
+						e.printStackTrace();
+					}
+				} else {
+					CategoryTreeParent categoryTreeParent = getSelectedCategory();
+					if (categoryTreeParent != null) {
+						CategoryDao dao = new CategoryDao();
+						try {
+							if (MessageDialog.openConfirm(getViewSite().getShell(), "", "Deseja remover a categoria (e todos os snippets pertencentes a ela) ?")) {
+								dao.remove(categoryTreeParent.getCategory());
+								MessageDialog.openInformation(getViewSite().getShell(), "", "Categoria removida com sucesso!");
+							}
+						} catch (SQLException e) {
+							MessageDialog.openError(getViewSite().getShell(), "Erro ao remover", e.getMessage());
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		};
+		removeAction.setText("Remover");
+		removeAction.setToolTipText("Remover");
+		removeAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_DELETE));
+	}
+
+	private void makeEditAction() {
+		editAction = new Action() {
+			@Override
+			public void run() {
+				SnippetTreeObject snippetTreeObject = getSelectedSnippet();
+				if (snippetTreeObject != null) {
+					Snippet snippet = snippetTreeObject.getSnippet();
+					new SnippetDialog(getViewSite().getShell(), snippet).open();
+				} else {
+					CategoryTreeParent categoryTreeParent = getSelectedCategory();
+					if (categoryTreeParent != null) {
+						Category category = categoryTreeParent.getCategory();
+						new CategoryDialog(getViewSite().getShell(), category).open();
+					}
+				}
+			}
+		};
+		editAction.setText("Editar");
+		editAction.setToolTipText("Editar snippet");
+		editAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT));
+	}
+
+	private void makeAddCategoryAction() {
+		addCategoryAction = new Action() {
+			@Override
+			public void run() {
+				new CategoryDialog(getViewSite().getShell(), new Category()).open();
+			}
+		};
+		addCategoryAction.setText("Adicionar Categoria");
+		addCategoryAction.setToolTipText("Adicionar Categoria");
+	}
+
+	private void makeAddSnippetAction() {
+		addSnippetAction = new Action() {
+			@Override
+			public void run() {
+				CategoryTreeParent categoryTreeParent = getSelectedCategory();
+				if (categoryTreeParent != null) {
+					Snippet snippet = new Snippet();
+					snippet.setCategory(categoryTreeParent.getCategory());
+					new SnippetDialog(getViewSite().getShell(), snippet).open();
+				}
+			}
+		};
+		addSnippetAction.setText("Adicionar");
+		addSnippetAction.setToolTipText("Adicionar snippet");
+		addSnippetAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJ_ADD));
+	}
+
+	private void makeRefreshAction() {
+		refreshAction = new Action() {
+			@Override
+			public void run() {
+				viewer.getContentProvider().inputChanged(viewer, null, null);
+				viewer.refresh();
+			}
+		};
+		refreshAction.setText("Atualizar");
+		refreshAction.setToolTipText("Atualizar");
+		refreshAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_REDO));
+	}
+
+	private void makeDoubleClickAction() {
 		doubleClickAction = new Action() {
 			public void run() {
 				IEditorPart editorPart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
@@ -132,7 +253,7 @@ public class SnipView extends ViewPart {
 				IDocumentProvider provider = editor.getDocumentProvider();
 				IDocument doc = provider.getDocument(editor.getEditorInput());
 				
-				Snippet snippet = getSelected().getSnippet();
+				Snippet snippet = getSelectedSnippet().getSnippet();
 				try {
 					doc.replace(offset, 0, snippet.getSnippet());
 				} catch (BadLocationException e) {
@@ -141,67 +262,6 @@ public class SnipView extends ViewPart {
 				
 			}
 		};
-		
-		refreshAction = new Action() {
-			@Override
-			public void run() {
-				viewer.getContentProvider().inputChanged(viewer, null, null);
-				viewer.refresh();
-			}
-		};
-		refreshAction.setText("Atualizar");
-		refreshAction.setToolTipText("Atualizar");
-		refreshAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_REDO));
-		
-		addAction = new Action() {
-			@Override
-			public void run() {
-			}
-		};
-		addAction.setText("Adicionar");
-		addAction.setToolTipText("Adicionar snippet");
-		addAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_OBJ_ADD));
-		
-		editAction = new Action() {
-			@Override
-			public void run() {
-				SnippetTreeObject o = getSelected();
-				if (o != null) {
-					SnippetDialog dialog = new SnippetDialog(getViewSite().getShell(), o.getSnippet());
-					dialog.open();
-				}
-			}
-		};
-		editAction.setText("Editar");
-		editAction.setToolTipText("Editar snippet");
-		editAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT));
-		
-		removeFolderAction = new Action() {
-			@Override
-			public void run() {
-				SnippetTreeObject o = getSelected();
-				if (o != null) {
-					MessageDialog.openError(getViewSite().getShell(), "Erro", "Operação ainda não implementada");
-				}
-			}
-		};
-		removeFolderAction.setText("Remover pasta");
-		removeFolderAction.setToolTipText("Remover pasta");
-		removeFolderAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_ELCL_REMOVEALL));
-		
-		removeSnippetAction = new Action() {
-			@Override
-			public void run() {
-				SnippetTreeObject o = getSelected();
-				if (o != null) {
-					MessageDialog.openError(getViewSite().getShell(), "Erro", "Operação ainda não implementada");
-				}
-			}
-		};
-		removeSnippetAction.setText("Remover snippet");
-		removeSnippetAction.setToolTipText("Remover snippet");
-		removeSnippetAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_TOOL_DELETE));
-		
 	}
 
 	private void hookDoubleClickAction() {
@@ -219,8 +279,15 @@ public class SnipView extends ViewPart {
 		viewer.getControl().setFocus();
 	}
 	
-	private SnippetTreeObject getSelected() {
+	private SnippetTreeObject getSelectedSnippet() {
 		ISelection selection = viewer.getSelection();
-		return (SnippetTreeObject) ((IStructuredSelection) selection).getFirstElement();
+		Object selected = ((IStructuredSelection) selection).getFirstElement();
+		return selected instanceof SnippetTreeObject ? (SnippetTreeObject) selected : null;
+	}
+	
+	private CategoryTreeParent getSelectedCategory() {
+		ISelection selection = viewer.getSelection();
+		Object selected = ((IStructuredSelection) selection).getFirstElement();
+		return selected instanceof CategoryTreeParent ? (CategoryTreeParent) selected : null;
 	}
 }

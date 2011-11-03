@@ -68,7 +68,7 @@ public class ViewContentProvider implements IStructuredContentProvider, ITreeCon
 		}
 
 		for (Category category : categories) {
-			TreeParent parent = new TreeParent(category.getName());
+			CategoryTreeParent parent = new CategoryTreeParent(category.getName(), category);
 			List<Snippet> snippets;
 			try {
 				snippets = categoryDao.findSnippets(category);

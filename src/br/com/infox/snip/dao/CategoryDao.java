@@ -47,12 +47,26 @@ public class CategoryDao implements Dao<Category> {
 	@Override
 	public void remove(Category c) throws SQLException {
 		Connection con = ConnectionFactory.getConnection();
-		String sql = "DELETE FROM tb_category WHERE id_category = ?";
-		PreparedStatement ps = con.prepareStatement(sql);
-		ps.setLong(1, c.getIdCategory());
-		ps.executeUpdate();
-		ps.close();
-		con.close();
+		try {
+			con.setAutoCommit(false);
+			String sql = "DELETE FROM tb_snippet WHERE id_category = ?";
+			PreparedStatement ps = con.prepareStatement(sql);
+			ps.setLong(1, c.getIdCategory());
+			ps.executeUpdate();
+			ps.close();
+			
+			sql = "DELETE FROM tb_category WHERE id_category = ?";
+			ps = con.prepareStatement(sql);
+			ps.setLong(1, c.getIdCategory());
+			ps.executeUpdate();
+			ps.close();
+			con.commit();
+		} catch (Exception e) {
+			con.rollback();
+			throw new SQLException(e);
+		} finally {
+			con.close();
+		}
 	}
 
 	@Override

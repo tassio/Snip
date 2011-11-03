@@ -2,7 +2,7 @@ package br.com.infox.snip.views;
 
 import java.util.ArrayList;
 
-class TreeParent extends TreeObject {
+public class TreeParent extends TreeObject {
 	private ArrayList<TreeObject> children;
 	
 	public TreeParent(String name) {
