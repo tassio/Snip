@@ -6,7 +6,9 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
@@ -43,12 +45,12 @@ public class SnippetDialog extends Dialog {
 	}
 	
 	private void createContents(final Shell parent) {
-		parent.setLayout(new RowLayout(SWT.HORIZONTAL));
-		txtName = new Text(parent, SWT.NONE);
+		parent.setLayout(new FormLayout());
+		txtName = new Text(parent, SWT.SINGLE | SWT.BORDER);
 		txtName.setText(snippet.getName());
 		
 		Button saveButton = new Button(parent, SWT.PUSH);
-		saveButton.setText("Save");
+		saveButton.setText("Salvar");
 		saveButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -61,5 +63,10 @@ public class SnippetDialog extends Dialog {
 				}
 			}
 		});
+		
+		FormData saveData = new FormData(80, 30);
+		saveData.right = new FormAttachment(98);
+		saveData.bottom = new FormAttachment(95);
+		saveButton.setLayoutData(saveData);
 	}
 }
