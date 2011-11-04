@@ -18,22 +18,22 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import br.com.infox.snip.dao.SnippetDao;
-import br.com.infox.snip.models.Snippet;
+import br.com.infox.snip.dao.CategoryDao;
+import br.com.infox.snip.models.Category;
 
-public final class SnippetDialog extends Dialog {
+public final class CategoryDialog extends Dialog {
 	private Object result;
-	private Snippet snippet;
+	private Category category;
 
-	public SnippetDialog(Shell parent, Snippet snippet) {
+	public CategoryDialog(Shell parent, Category category) {
 		super(parent);
-		this.snippet = snippet;
+		this.category = category;
 	}
 
 	public Object open() {
 		Shell parent = getParent();
 		final Shell shell = new Shell(parent, SWT.DIALOG_TRIM);
-		shell.setText(snippet.getName() == null ? "Novo Snippet" : snippet.getName());
+		shell.setText(category.getName() == null ? "Nova Categoria" : category.getName());
 		createContents(shell);
 		shell.addShellListener(new ShellAdapter() {
 			@Override
@@ -64,20 +64,7 @@ public final class SnippetDialog extends Dialog {
 		FormData nameData = new FormData(350, 20);
 		nameData.left = new FormAttachment(labelName, 5);
 		txtName.setLayoutData(nameData);
-		
-		Label labelSnippet = new Label(parent, SWT.LEFT);
-		labelSnippet.setText("Snippet");
-		FormData labelSnippetData = new FormData();
-		labelSnippetData.left = new FormAttachment(0, 5);
-		labelSnippetData.top = new FormAttachment(txtName, 10);
-		labelSnippet.setLayoutData(labelSnippetData);
-		
-		final Text txtSnippet = new Text(parent, SWT.MULTI | SWT.BORDER);
-		FormData snippetData = new FormData(750, 500);
-		snippetData.left = new FormAttachment(0, 15);
-		snippetData.top = new FormAttachment(labelSnippet, 7);
-		txtSnippet.setLayoutData(snippetData);
-		
+				
 		Button cancelButton = new Button(parent, SWT.PUSH);
 		cancelButton.setText("Cancelar");
 		cancelButton.addSelectionListener(new SelectionAdapter() {
@@ -98,18 +85,17 @@ public final class SnippetDialog extends Dialog {
 		saveButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				SnippetDao dao = new SnippetDao();
+				CategoryDao dao = new CategoryDao();
 				try {
-					snippet.setName(txtName.getText());
-					snippet.setSnippet(txtSnippet.getText());
-					if (snippet.getIdSnippet() == null) {
-						dao.insert(snippet);
+					category.setName(txtName.getText());
+					if (category.getIdCategory() == null) {
+						dao.insert(category);
 					} else {
-						dao.update(snippet);
+						dao.update(category);
 					}
-					MessageDialog.openInformation(parent, "", "Snippet salvo com sucesso");
+					MessageDialog.openInformation(parent, "", "Categoria salva com sucesso");
 				} catch (SQLException e1) {
-					MessageDialog.openError(parent, "Erro ao salvar o snippet", e1.getMessage());
+					MessageDialog.openError(parent, "Erro ao salvar a categoria", e1.getMessage());
 					e1.printStackTrace();
 				}
 			}
@@ -119,7 +105,6 @@ public final class SnippetDialog extends Dialog {
 		saveData.bottom = new FormAttachment(cancelButton, 0, SWT.BOTTOM);
 		saveButton.setLayoutData(saveData);
 		
-		txtName.setText(snippet.getName());
-		txtSnippet.setText(snippet.getSnippet());
+		txtName.setText(category.getName());
 	}
 }
